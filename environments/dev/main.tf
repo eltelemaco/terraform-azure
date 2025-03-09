@@ -47,4 +47,43 @@ module "network" {
     Environment = "Development"
     ManagedBy   = "Terraform"
   }
+}
+
+# Key Vault Module
+module "keyvault" {
+  source = "../../modules/keyvault"
+
+  key_vault_name      = "kv-dev-main"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  tenant_id          = var.tenant_id
+
+  allowed_ip_ranges = var.allowed_ip_ranges
+
+  tags = {
+    Environment = "Development"
+    ManagedBy   = "Terraform"
+  }
+}
+
+# App Service Module
+module "app_service" {
+  source = "../../modules/app_service"
+
+  service_plan_name   = "plan-dev-main"
+  app_name           = "app-dev-main"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  os_type            = "Linux"
+  sku_name           = "B1"
+
+  app_settings = {
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
+    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
+  }
+
+  tags = {
+    Environment = "Development"
+    ManagedBy   = "Terraform"
+  }
 } 

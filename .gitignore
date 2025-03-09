@@ -1,1 +1,4 @@
 /.cursor
+/.terraform
+/.terraform.lock.hcl
+
