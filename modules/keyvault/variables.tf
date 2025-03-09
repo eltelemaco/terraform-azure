@@ -28,8 +28,8 @@ variable "access_policies" {
   description = "Map of access policies for the Key Vault"
   type = map(object({
     object_id               = string
-    key_permissions        = list(string)
-    secret_permissions     = list(string)
+    key_permissions         = list(string)
+    secret_permissions      = list(string)
     certificate_permissions = list(string)
   }))
   default = {}

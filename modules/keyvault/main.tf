@@ -6,7 +6,7 @@ resource "azurerm_key_vault" "vault" {
   tenant_id                   = var.tenant_id
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false
-  sku_name                   = "standard"
+  sku_name                    = "standard"
 
   network_acls {
     default_action = "Deny"
@@ -24,7 +24,7 @@ resource "azurerm_key_vault_access_policy" "policy" {
   tenant_id    = var.tenant_id
   object_id    = each.value.object_id
 
-  key_permissions = each.value.key_permissions
-  secret_permissions = each.value.secret_permissions
+  key_permissions         = each.value.key_permissions
+  secret_permissions      = each.value.secret_permissions
   certificate_permissions = each.value.certificate_permissions
 } 

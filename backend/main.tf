@@ -42,7 +42,7 @@ resource "azurerm_storage_account" "terraform_state" {
 resource "azurerm_storage_container" "terraform_state" {
   name                  = "tfstate"
   storage_account_name  = azurerm_storage_account.terraform_state.name
-  container_access_type = "private"  
+  container_access_type = "private"
 }
 
 resource "random_string" "storage_account" {
