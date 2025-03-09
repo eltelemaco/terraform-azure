@@ -13,7 +13,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "terraform_state" {
-  name     = "rg-terraform-state"
+  name     = "rg-terraform-backend"
   location = "eastus2"
   tags = {
     Environment = "Management"
@@ -27,7 +27,7 @@ resource "azurerm_storage_account" "terraform_state" {
   location                 = azurerm_resource_group.terraform_state.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
-  min_tls_version         = "TLS1_2"
+  min_tls_version          = "TLS1_2"
 
   blob_properties {
     versioning_enabled = true
@@ -41,8 +41,8 @@ resource "azurerm_storage_account" "terraform_state" {
 
 resource "azurerm_storage_container" "terraform_state" {
   name                  = "tfstate"
-  container_access_type = "private"
-  storage_account_id    = azurerm_storage_account.terraform_state.id
+  storage_account_name  = azurerm_storage_account.terraform_state.name
+  container_access_type = "private"  
 }
 
 resource "random_string" "storage_account" {

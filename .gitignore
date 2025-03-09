@@ -1,4 +1,14 @@
 /.cursor
-/.terraform
-/.terraform.lock.hcl
-
+**/.terraform*
+**/.terraform.lock.hcl
+**/.terraform
+**/.terraform.lock.hcl
+**/.terraform
+**/.terraform.lock.hcl
+**/.terraform
+**/.terraform.lock.hcl
+**/.terraform
+**/.terraform.lock.hcl
+*/terraform.tfstate
+*/terraform.tfstate.*
+backend/backendtfplan
