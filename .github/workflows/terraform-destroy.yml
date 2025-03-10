@@ -147,6 +147,13 @@ jobs:
 
     - name: Terraform Plan Destroy
       working-directory: environments/${{ github.event.inputs.environment }}
+      env:
+        ARM_USE_OIDC: true        
+        TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+        TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+        TF_VAR_storage_account_name: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+        TF_VAR_container_name: ${{ secrets.CONTAINER_NAME }}
       run: terraform plan -destroy -out=tfdestroyplan
 
     - name: Pause for Review
