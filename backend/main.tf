@@ -64,7 +64,7 @@ resource "azurerm_storage_account" "terraform_state" {
 
 # Container for Terraform State Files
 resource "azurerm_storage_container" "terraform_state" {
-  name                  = "tfstate"
+  name                  = "container-tfstate"
   storage_account_name  = azurerm_storage_account.terraform_state.name
   container_access_type = "private" # Ensures private access only
 }

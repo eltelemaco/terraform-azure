@@ -13,8 +13,7 @@
  * ## Backend Configuration
  * Uses Azure Storage Account for state management with the following settings:
  * - Resource Group: rg-terraform-backend
- * - Storage Account: tfstatereb80hkq
- * - Container: tfstate
+ * - Container: container-tfstate
  * - State File: dev.terraform.tfstate
  *
  * ## Tags
@@ -33,9 +32,9 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "rg-terraform-backend"
-    storage_account_name = "tfstatereb80hkq"
-    container_name       = "tfstate"
-    key                  = "tfstate"
+    container_name      = "container-tfstate"
+    key                = "dev.terraform.tfstate"
+    use_azuread_auth   = true
   }
 }
 

@@ -16,10 +16,14 @@ env:
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  # ARM_USE_AZUREAD: true
+  ARM_USE_AZUREAD: true
   TF_CLI_ARGS_plan: "-lock-timeout=5m"
   TF_CLI_ARGS_apply: "-lock-timeout=5m"
   TF_WORKSPACE: "dev"
+  # Backend Configuration
+  TF_VAR_backend_resource_group: "rg-terraform-backend"
+  TF_VAR_backend_container_name: "container-tfstate"
+  TF_VAR_backend_key: "dev.terraform.tfstate"
   # Terraform Variables from Secrets
   TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -60,8 +64,7 @@ jobs:
         inlineScript: |
           az account show
           # Verify backend storage access
-          az storage account show --name ${{ secrets.STORAGE_ACCOUNT_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }}
-          az storage container exists --name ${{ secrets.CONTAINER_NAME }} --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} --auth-mode login
+          az storage container exists --name container-tfstate --account-name $(az storage account list -g rg-terraform-backend --query "[0].name" -o tsv) --auth-mode login
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
