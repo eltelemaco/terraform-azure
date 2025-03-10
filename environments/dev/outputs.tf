@@ -55,7 +55,7 @@ output "key_vault_id" {
 output "key_vault_uri" {
   description = "The URI of the Key Vault"
   value       = module.keyvault.key_vault_uri
-  sensitive   = true  # URI might contain sensitive information
+  sensitive   = true # URI might contain sensitive information
 }
 
 output "key_vault_name" {

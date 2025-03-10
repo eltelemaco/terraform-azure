@@ -53,7 +53,7 @@ resource "azurerm_storage_account" "terraform_state" {
   min_tls_version          = "TLS1_2"
 
   blob_properties {
-    versioning_enabled = true  # Enables state file versioning
+    versioning_enabled = true # Enables state file versioning
   }
 
   tags = {
@@ -66,7 +66,7 @@ resource "azurerm_storage_account" "terraform_state" {
 resource "azurerm_storage_container" "terraform_state" {
   name                  = "tfstate"
   storage_account_name  = azurerm_storage_account.terraform_state.name
-  container_access_type = "private"  # Ensures private access only
+  container_access_type = "private" # Ensures private access only
 }
 
 # Random String for Storage Account Name

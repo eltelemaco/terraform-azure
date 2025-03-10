@@ -34,8 +34,8 @@ terraform {
   backend "azurerm" {
     resource_group_name  = "rg-terraform-backend"
     storage_account_name = "tfstatereb80hkq"
-    container_name      = "tfstate"
-    key                = "dev.terraform.tfstate"
+    container_name       = "tfstate"
+    key                  = "dev.terraform.tfstate"
   }
 }
 
@@ -49,7 +49,7 @@ module "resource_group" {
   source = "../../modules/resource_group"
 
   resource_group_name = "rg-dev-main"
-  location           = "eastus2"
+  location            = "eastus2"
   tags = {
     Environment = "Development"
     ManagedBy   = "Terraform"
@@ -64,11 +64,11 @@ module "network" {
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   address_space       = ["10.0.0.0/16"]
-  
+
   # Subnet configuration
   subnets = {
-    "subnet-1" = "10.0.1.0/24"  # Application subnet
-    "subnet-2" = "10.0.2.0/24"  # Database subnet
+    "subnet-1" = "10.0.1.0/24" # Application subnet
+    "subnet-2" = "10.0.2.0/24" # Database subnet
   }
 
   tags = {
@@ -84,7 +84,7 @@ module "keyvault" {
   key_vault_name      = "kv-dev-main"
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
-  tenant_id          = var.tenant_id
+  tenant_id           = var.tenant_id
 
   allowed_ip_ranges = var.allowed_ip_ranges
 
