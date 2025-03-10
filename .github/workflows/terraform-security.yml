@@ -1,0 +1,84 @@
+name: 'Terraform Security Scan'
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  security-scan:
+    name: 'Security Scan'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Run tfsec
+      uses: aquasecurity/tfsec-action@v1.0.0
+      with:
+        soft_fail: true
+        format: sarif
+        out_file: tfsec.sarif
+
+    - name: Run checkov
+      id: checkov
+      uses: bridgecrewio/checkov-action@master
+      with:
+        directory: .
+        framework: terraform
+        output_format: sarif
+        output_file: checkov.sarif
+        soft_fail: true
+
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v3
+      if: success() || failure()
+      with:
+        sarif_file: ${{ github.workspace }}/tfsec.sarif
+        category: tfsec-findings
+
+    - name: Upload Checkov SARIF file
+      uses: github/codeql-action/upload-sarif@v3
+      if: success() || failure()
+      with:
+        sarif_file: ${{ github.workspace }}/checkov.sarif
+        category: checkov-findings
+
+    - name: Post Security Scan Summary
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const tfsecResult = process.env.TFSEC_EXIT_CODE === '0' ? '✅' : '⚠️';
+          const checkovResult = process.env.CHECKOV_EXIT_CODE === '0' ? '✅' : '⚠️';
+          
+          const output = `## Security Scan Results
+          
+          | Tool | Status |
+          |------|--------|
+          | tfsec | ${tfsecResult} |
+          | checkov | ${checkovResult} |
+          
+          For detailed results, check the Security tab in your repository.
+          
+          > Note: This is an automated security scan. Please review the findings carefully.`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+      env:
+        TFSEC_EXIT_CODE: ${{ steps.tfsec.outputs.exit_code }}
+        CHECKOV_EXIT_CODE: ${{ steps.checkov.outputs.exit_code }} 
