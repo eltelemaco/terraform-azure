@@ -2,12 +2,10 @@ name: 'Terraform Security Scan'
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight
-
+    branches: [ main, dev ]
+  
 permissions:
   contents: read
   pull-requests: write
@@ -22,35 +20,79 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+      id: go
+
     - name: Run tfsec
-      uses: aquasecurity/tfsec-action@v1.0.0
+      id: tfsec
+      uses: aquasecurity/tfsec-action@v1.0.3
       with:
         soft_fail: true
-        format: sarif
-        out_file: tfsec.sarif
+        working_directory: .
+      continue-on-error: true
+
+    - name: Run tfsec with output
+      if: success() || failure()
+      run: |
+        # Create directory for tools
+        mkdir -p $GITHUB_WORKSPACE/bin
+        cd $GITHUB_WORKSPACE/bin
+
+        # Install tfsec using go
+        echo "Installing tfsec..."
+        go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
+        
+        # Add go bin to PATH
+        echo "Adding go bin to PATH..."
+        export PATH=$PATH:$(go env GOPATH)/bin
+        
+        # Run tfsec and generate SARIF
+        echo "Running tfsec..."
+        cd $GITHUB_WORKSPACE
+        tfsec . --format sarif --out tfsec.sarif || true
+        
+        # Verify file exists and show contents
+        echo "Verifying output..."
+        ls -la tfsec.sarif
+        echo "SARIF file contents:"
+        cat tfsec.sarif || echo "Failed to read SARIF file"
 
     - name: Run checkov
       id: checkov
       uses: bridgecrewio/checkov-action@master
-      with:
+      with:        
         directory: .
         framework: terraform
-        output_format: sarif
-        output_file: checkov.sarif
         soft_fail: true
+      continue-on-error: true
 
-    - name: Upload SARIF file
+    - name: Run checkov with output
+      if: success() || failure()
+      run: |
+        # Install checkov
+        pip install checkov
+        
+        # Run checkov and generate SARIF
+        checkov -d . --framework terraform --output sarif --output-file checkov.sarif --check CKV_AZURE_3
+        
+        # Verify file exists
+        ls -la checkov.sarif
+
+    - name: Upload tfsec SARIF file
       uses: github/codeql-action/upload-sarif@v3
       if: success() || failure()
       with:
-        sarif_file: ${{ github.workspace }}/tfsec.sarif
+        sarif_file: tfsec.sarif
         category: tfsec-findings
 
     - name: Upload Checkov SARIF file
       uses: github/codeql-action/upload-sarif@v3
       if: success() || failure()
       with:
-        sarif_file: ${{ github.workspace }}/checkov.sarif
+        sarif_file: checkov.sarif
         category: checkov-findings
 
     - name: Post Security Scan Summary

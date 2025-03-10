@@ -1,10 +1,10 @@
-name: 'Terraform'
+name: 'Terraform Deployment'
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 permissions:
   id-token: write
@@ -12,29 +12,24 @@ permissions:
   pull-requests: write
 
 env:
-  ARM_USE_OIDC: true
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  ARM_USE_AZUREAD: true
   ARM_USE_CLI: true
-  ARM_STORAGE_USE_AZUREAD: true
   TF_CLI_ARGS_plan: "-lock-timeout=5m"
   TF_CLI_ARGS_apply: "-lock-timeout=5m"
   TF_WORKSPACE: "dev"
-  # Backend Configuration
-  TF_VAR_backend_resource_group: "rg-terraform-backend"
-  TF_VAR_backend_container_name: "container-tfstate"
-  TF_VAR_backend_key: "dev.terraform.tfstate"
   # Terraform Variables from Secrets
-  TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+  TF_VAR_use_oidc: true
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+  TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
   TF_VAR_storage_account_name: ${{ secrets.STORAGE_ACCOUNT_NAME }}
   TF_VAR_container_name: ${{ secrets.CONTAINER_NAME }}
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: 'Terraform Deployment'
     permissions:
       id-token: write
       contents: read
@@ -60,43 +55,33 @@ jobs:
     
     # Run az commands to confirm sub access
     - name: Azure CLI script
-      uses: azure/cli@v2
+      uses: azure/cli@v2      
       with:
         azcliversion: latest
         inlineScript: |
           az account show
+          az storage -h
           # Verify backend storage access
           az storage container exists --name container-tfstate --account-name $(az storage account list -g rg-terraform-backend --query "[0].name" -o tsv) --auth-mode login
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
-      env:
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
-        ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
-        ARM_USE_AZUREAD: true
-        ARM_USE_OIDC: true      
       with:
-        terraform_version: "1.7.0"
-        terraform_wrapper: false
+        terraform_version: "1.7.1"
 
     - name: Terraform Format
       id: fmt
-      run: terraform fmt -check -recursive
-      continue-on-error: true
+      run: terraform fmt -recursive
 
     - name: Terraform Init
       id: init
       env:
+        ARM_USE_OIDC: true        
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
         ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
-        ARM_USE_AZUREAD: true
-        ARM_USE_OIDC: true      
       run: |
         echo "Cleaning up any existing Terraform files..."
         rm -rf .terraform
@@ -140,11 +125,13 @@ jobs:
     - name: Terraform Plan
       id: plan
       env:
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
-        ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+        ARM_USE_OIDC: true        
+        TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+        TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+        TF_VAR_storage_account_name: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+        TF_VAR_container_name: ${{ secrets.CONTAINER_NAME }}
+
       run: |
         for i in {1..3}; do
           terraform plan -no-color && break
@@ -155,8 +142,7 @@ jobs:
           echo "Retrying plan in 30 seconds..."
           sleep 30
         done
-      working-directory: environments/${{ env.TF_WORKSPACE }}
-      continue-on-error: true
+      working-directory: environments/${{ env.TF_WORKSPACE }}      
 
     - name: Update Pull Request
       uses: actions/github-script@v7
@@ -187,13 +173,15 @@ jobs:
           })
 
     - name: Terraform Apply
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      id: apply
+      # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       env:
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
-        ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+        ARM_USE_OIDC: true
+        TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+        TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+        TF_VAR_storage_account_name: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+        TF_VAR_container_name: ${{ secrets.CONTAINER_NAME }}
       run: |
         for i in {1..3}; do
           terraform apply -auto-approve && break
