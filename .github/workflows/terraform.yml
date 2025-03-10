@@ -20,6 +20,11 @@ env:
   TF_CLI_ARGS_plan: "-lock-timeout=5m"
   TF_CLI_ARGS_apply: "-lock-timeout=5m"
   TF_WORKSPACE: "dev"
+  # Terraform Variables from Secrets
+  TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+  TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_storage_account_name: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+  TF_VAR_container_name: ${{ secrets.CONTAINER_NAME }}
 
 jobs:
   terraform:
@@ -55,8 +60,8 @@ jobs:
         inlineScript: |
           az account show
           # Verify backend storage access
-          az storage account show --name tfstatereb80hkq --resource-group rg-terraform-backend
-          az storage container exists --name tfstate --account-name tfstatereb80hkq --auth-mode login
+          az storage account show --name ${{ secrets.STORAGE_ACCOUNT_NAME }} --resource-group ${{ secrets.RESOURCE_GROUP_NAME }}
+          az storage container exists --name ${{ secrets.CONTAINER_NAME }} --account-name ${{ secrets.STORAGE_ACCOUNT_NAME }} --auth-mode login
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
