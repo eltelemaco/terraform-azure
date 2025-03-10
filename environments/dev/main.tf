@@ -1,3 +1,28 @@
+/**
+ * # Development Environment Configuration
+ * 
+ * This configuration represents the development environment infrastructure in Azure.
+ * It uses modules to create and manage the following resources:
+ * - Resource Group
+ * - Virtual Network with subnets
+ * - Key Vault with access policies
+ *
+ * ## Required Providers
+ * - Azure RM Provider ~> 3.0
+ *
+ * ## Backend Configuration
+ * Uses Azure Storage Account for state management with the following settings:
+ * - Resource Group: rg-terraform-backend
+ * - Storage Account: tfstatereb80hkq
+ * - Container: tfstate
+ * - State File: dev.terraform.tfstate
+ *
+ * ## Tags
+ * All resources are tagged with:
+ * - Environment = "Development"
+ * - ManagedBy = "Terraform"
+ */
+
 terraform {
   required_providers {
     azurerm = {
@@ -8,7 +33,7 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "rg-terraform-backend"
-    storage_account_name = "tfstate" # This will be updated after backend creation
+    storage_account_name = "tfstatereb80hkq"
     container_name      = "tfstate"
     key                = "dev.terraform.tfstate"
   }
@@ -31,7 +56,7 @@ module "resource_group" {
   }
 }
 
-# Network Module
+# Network Module - Creates Virtual Network and Subnets
 module "network" {
   source = "../../modules/network"
 
@@ -40,9 +65,10 @@ module "network" {
   location            = module.resource_group.resource_group_location
   address_space       = ["10.0.0.0/16"]
   
+  # Subnet configuration
   subnets = {
-    "subnet-1" = "10.0.1.0/24"
-    "subnet-2" = "10.0.2.0/24"
+    "subnet-1" = "10.0.1.0/24"  # Application subnet
+    "subnet-2" = "10.0.2.0/24"  # Database subnet
   }
 
   tags = {
@@ -51,7 +77,7 @@ module "network" {
   }
 }
 
-# Key Vault Module
+# Key Vault Module - Secure secret management
 module "keyvault" {
   source = "../../modules/keyvault"
 
