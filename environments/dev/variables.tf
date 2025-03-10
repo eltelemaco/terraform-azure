@@ -40,7 +40,7 @@ variable "resource_group_name" {
 variable "storage_account_name" {
   description = "Name of the storage account"
   type        = string
-  default     = "stgdevtfstatemgmt001" #stg<env><name><number>
+  default     = "stgdevtdemomgmt001" #stg<env><name><number>
 }
 
 # Network Configuration
