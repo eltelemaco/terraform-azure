@@ -54,6 +54,9 @@ jobs:
         azcliversion: latest
         inlineScript: |
           az account show
+          # Verify backend storage access
+          az storage account show --name tfstatereb80hkq --resource-group rg-terraform-backend
+          az storage container exists --name tfstate --account-name tfstatereb80hkq --auth-mode login
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -72,8 +75,25 @@ jobs:
     - name: Terraform Init
       id: init
       run: |
+        echo "Cleaning up any existing Terraform files..."
+        rm -rf .terraform
+        rm -f .terraform.lock.hcl
+
         for i in {1..3}; do
-          terraform init && break
+          echo "Attempt $i: Initializing Terraform..."
+          # First try normal init
+          if terraform init; then
+            echo "Normal init successful"
+            break
+          fi
+          
+          echo "Normal init failed, trying with reconfigure..."
+          # If normal init fails, try with reconfigure
+          if terraform init -reconfigure; then
+            echo "Reconfigure init successful"
+            break
+          fi
+          
           if [ $i -eq 3 ]; then
             echo "Failed to initialize after 3 attempts"
             exit 1

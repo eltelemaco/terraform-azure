@@ -35,7 +35,7 @@ terraform {
     resource_group_name  = "rg-terraform-backend"
     storage_account_name = "tfstatereb80hkq"
     container_name       = "tfstate"
-    key                  = "dev.terraform.tfstate"
+    key                  = "tfstate"
   }
 }
 
