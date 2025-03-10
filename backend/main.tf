@@ -34,7 +34,7 @@ resource "azurerm_storage_account" "terraform_state" {
   location                 = azurerm_resource_group.terraform_state.location
   account_tier             = var.storage_account_tier
   account_replication_type = var.storage_account_replication
-  min_tls_version         = "TLS1_2"
+  min_tls_version          = "TLS1_2"
 
   blob_properties {
     versioning_enabled = true # Enables state file versioning

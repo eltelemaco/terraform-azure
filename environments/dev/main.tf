@@ -34,7 +34,7 @@ terraform {
     resource_group_name  = "rg-terraform-backend"
     storage_account_name = "tfstategp2ej81f"
     container_name       = "container-tfstate"
-    key                  = "dev.terraform.tfstate"    
+    key                  = "dev.terraform.tfstate"
   }
 }
 
@@ -49,7 +49,7 @@ module "resource_group" {
 
   resource_group_name = var.resource_group_name
   location            = var.location
-  tags               = var.tags
+  tags                = var.tags
 }
 
 # Network Module - Creates Virtual Network and Subnets
@@ -60,8 +60,8 @@ module "network" {
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   address_space       = var.vnet_address_space
-  subnets            = var.subnets
-  tags               = var.tags
+  subnets             = var.subnets
+  tags                = var.tags
 }
 
 # Key Vault Module - Secure secret management
@@ -73,5 +73,5 @@ module "keyvault" {
   location            = module.resource_group.resource_group_location
   tenant_id           = var.tenant_id
   allowed_ip_ranges   = var.allowed_ip_ranges
-  tags               = var.tags
+  tags                = var.tags
 } 
