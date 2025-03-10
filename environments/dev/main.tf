@@ -133,7 +133,7 @@ module "storage" {
   # Optional configurations
   soft_delete_retention_days = 30
   log_retention_days         = 90
-  allowed_ip_ranges          = ["0.0.0.0/24"]
+  # allowed_ip_ranges          = ["0.0.0.0/24"]
 
   # Log Analytics
   log_analytics_workspace_id = module.log_analytics.workspace_id
