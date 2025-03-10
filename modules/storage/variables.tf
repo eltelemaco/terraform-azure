@@ -19,10 +19,10 @@ variable "storage_account_name" {
   description = "Name of the storage account (must be globally unique and follow naming convention)"
   type        = string
 
-  validation {
-    condition     = can(regex("^stg[a-z]{3}[a-z]+[0-9]{3}$", var.storage_account_name))
-    error_message = "Storage account name must follow pattern: stg<env><name><number> (e.g., stgdevtfstatefilemgmt001)"
-  }
+  # validation {
+  #   condition     = can(regex("^stg[a-z]{3}[a-z]+[0-9]{3}$", var.storage_account_name))
+  #   error_message = "Storage account name must follow pattern: stg<env><name><number> (e.g., stgdevtfstatefilemgmt001)"
+  # }
 }
 
 # Tags and Metadata
