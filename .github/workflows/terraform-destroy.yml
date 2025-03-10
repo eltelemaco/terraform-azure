@@ -25,7 +25,8 @@ permissions:
 
 env:
   TERRAFORM_VERSION: "1.7.0"
-  ARM_USE_OIDC: true        
+  ARM_USE_OIDC: true
+  TF_WORKSPACE: "dev"
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
   TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -35,7 +36,7 @@ env:
 jobs:
   terraform-destroy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ env.TF_WORKSPACE }}
 
     steps:
     - name: Validate Confirmation
@@ -80,7 +81,7 @@ jobs:
     - name: Check and Remove State Lock
       shell: pwsh
       run: |
-        $env = "${{ github.event.inputs.environment }}"
+        $env = "${{ env.TF_WORKSPACE }}"
         $storageAccount = Get-AzStorageAccount -ResourceGroupName "rg-terraform-backend" -Name "tfstategp2ej81f"
         $ctx = $storageAccount.Context
         $stateFile = "${env}.terraform.tfstate"
@@ -131,7 +132,7 @@ jobs:
         echo 'plugin_cache_dir = "$HOME/.terraform.d/plugin-cache"' > ~/.terraformrc
 
     - name: Terraform Init
-      working-directory: environments/${{ github.event.inputs.environment }}      
+      working-directory: environments/${{ env.TF_WORKSPACE }}      
       env:
         ARM_USE_OIDC: true        
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -146,7 +147,7 @@ jobs:
         terraform init
 
     - name: Terraform Plan Destroy
-      working-directory: environments/${{ github.event.inputs.environment }}
+      working-directory: environments/${{ env.TF_WORKSPACE }}
       env:
         ARM_USE_OIDC: true        
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -164,7 +165,7 @@ jobs:
         sleep 30
 
     - name: Terraform Destroy
-      working-directory: environments/${{ github.event.inputs.environment }}
+      working-directory: environments/${{ env.TF_WORKSPACE }}
       env:
         ARM_USE_OIDC: true        
         ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
