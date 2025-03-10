@@ -36,7 +36,7 @@ env:
 jobs:
   terraform-destroy:
     runs-on: ubuntu-latest
-    environment: ${{ env.TF_WORKSPACE }}
+    environment: dev
 
     steps:
     - name: Validate Confirmation
