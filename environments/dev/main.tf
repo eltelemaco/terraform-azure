@@ -27,7 +27,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.7.0"
+      version = "~> 4.20.0"
     }
   }
 
@@ -114,5 +114,7 @@ module "log_analytics" {
     module.network
   ]
 }
+
+
 
 
