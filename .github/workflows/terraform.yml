@@ -36,7 +36,7 @@ jobs:
       contents: read
       pull-requests: write
     runs-on: ubuntu-latest
-    environment: ${{ env.TF_WORKSPACE }}
+    environment: dev
 
     defaults:
       run:
