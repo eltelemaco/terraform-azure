@@ -36,39 +36,11 @@ resource "azurerm_monitor_diagnostic_setting" "subscription" {
   name               = "subscription-logs"
   target_resource_id = "/subscriptions/${var.subscription_id}"
 
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
-
-  enabled_log {
-    category = "Administrative"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id  
+  metric {
+    category = "AllMetrics"
   }
 
-  enabled_log {
-    category = "Security"
-  }
-
-  enabled_log {
-    category = "ServiceHealth"
-  }
-
-  enabled_log {
-    category = "Alert"
-  }
-
-  enabled_log {
-    category = "Recommendation"
-  }
-
-  enabled_log {
-    category = "Policy"
-  }
-
-  enabled_log {
-    category = "Autoscale"
-  }
-
-  enabled_log {
-    category = "ResourceHealth"
-  }
 }
 
 # Key Vault Diagnostic Settings
@@ -77,24 +49,10 @@ resource "azurerm_monitor_diagnostic_setting" "keyvault" {
 
   name                       = "keyvault-diagnostics"
   target_resource_id         = var.key_vault_id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
-
-  enabled_log {
-    category = "AuditEvent"
-  }
-
-  enabled_log {
-    category = "AzurePolicyEvaluationDetails"
-  }
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id  
 
   metric {
     category = "AllMetrics"
-    enabled  = true
-
-    retention_policy {
-      enabled = true
-      days    = var.retention_in_days
-    }
   }
 }
 
@@ -105,18 +63,8 @@ resource "azurerm_monitor_diagnostic_setting" "vnet" {
   name                       = "vnet-diagnostics"
   target_resource_id         = var.vnet_id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
-
-  enabled_log {
-    category = "VMProtectionAlerts"
-  }
-
+  
   metric {
     category = "AllMetrics"
-    enabled  = true
-
-    retention_policy {
-      enabled = true
-      days    = var.retention_in_days
-    }
   }
 } 
