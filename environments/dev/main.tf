@@ -6,6 +6,7 @@
  * - Resource Group
  * - Virtual Network with subnets
  * - Key Vault with access policies
+ * - Log Analytics Workspace for centralized logging
  *
  * ## Required Providers
  * - Azure RM Provider ~> 3.0
@@ -26,7 +27,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.7.0"
+      version = "~> 4.20.0"
     }
   }
 
@@ -39,7 +40,11 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 
   # OIDC Configuration
   use_oidc        = true
@@ -72,7 +77,7 @@ module "network" {
 module "keyvault" {
   source = "../../modules/keyvault"
 
-  key_vault_name      = "${var.key_vault_name}-${random_string.keyvault_name.result}"
+  key_vault_name      = "${var.key_vault_name}-${random_string.rand_name.result}"
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   tenant_id           = var.tenant_id
@@ -80,10 +85,64 @@ module "keyvault" {
   tags                = var.tags
 }
 
-resource "random_string" "keyvault_name" {
+resource "random_string" "rand_name" {
   length  = 4
   special = false
   upper   = false
 }
+
+# Log Analytics Module - Centralized logging
+module "log_analytics" {
+  source = "../../modules/log_analytics"
+
+  workspace_name      = "log-${var.environment}-main"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  subscription_id     = var.subscription_id
+
+  # Resource IDs for diagnostic settings
+  key_vault_id = module.keyvault.key_vault_id
+  vnet_id      = module.network.vnet_id
+
+  # Optional configurations
+  retention_in_days = 90
+  daily_quota_gb    = 5
+
+  tags = merge(var.tags, {
+    Service = "Logging"
+  })
+
+  # Ensure resources are created before attempting to configure diagnostics
+  depends_on = [
+    module.keyvault,
+    module.network
+  ]
+}
+module "storage" {
+  source               = "../../modules/storage"
+  storage_account_name = "${var.storage_account_name}${random_string.rand_name.result}" # "stgdevtfstatemgmt001"
+  resource_group_name  = var.resource_group_name                                         #"rg-dev-storage"
+
+  location = var.location #  "southcentralus" # Texas
+
+  # Tags
+  cost_center      = "IT-123"
+  application_name = "Terraform State"
+  owner            = "DevOps Team"
+
+  # Optional configurations
+  soft_delete_retention_days = 30
+  log_retention_days         = 90
+  # allowed_ip_ranges          = ["0.0.0.0/24"]
+
+  # Log Analytics
+  log_analytics_workspace_id = module.log_analytics.workspace_id
+
+  tags = {
+    Environment = "Development"
+    ManagedBy   = "Terraform"
+  }
+}
+
 
 
