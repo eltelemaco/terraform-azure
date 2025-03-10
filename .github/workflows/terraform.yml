@@ -22,10 +22,6 @@ env:
   TF_CLI_ARGS_plan: "-lock-timeout=5m"
   TF_CLI_ARGS_apply: "-lock-timeout=5m"
   TF_WORKSPACE: ${{ github.event.pull_request.head.ref || github.event.push.ref || 'main' }}
-  # Backend Configuration
-  TF_VAR_backend_resource_group: "rg-terraform-backend"
-  TF_VAR_backend_container_name: "container-tfstate"
-  TF_VAR_backend_key: "${{ env.TF_WORKSPACE }}.terraform.tfstate"
   # Terraform Variables from Secrets
   TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
   TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
