@@ -31,10 +31,10 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = "rg-terraform-backend"
+    resource_group_name = "rg-terraform-backend"
     container_name      = "container-tfstate"
-    key                = "dev.terraform.tfstate"
-    use_azuread_auth   = true
+    key                 = "dev.terraform.tfstate"
+    use_azuread_auth    = true
   }
 }
 
