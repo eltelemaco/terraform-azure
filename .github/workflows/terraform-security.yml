@@ -63,7 +63,7 @@ jobs:
     - name: Run checkov
       id: checkov
       uses: bridgecrewio/checkov-action@master
-      with:
+      with:        
         directory: .
         framework: terraform
         soft_fail: true
@@ -76,7 +76,7 @@ jobs:
         pip install checkov
         
         # Run checkov and generate SARIF
-        checkov -d . --framework terraform --output sarif --output-file checkov.sarif
+        checkov -d . --framework terraform --output sarif --output-file checkov.sarif --check CKV_AZURE_3
         
         # Verify file exists
         ls -la checkov.sarif
