@@ -27,7 +27,21 @@ jobs:
       uses: aquasecurity/tfsec-action@v1.0.0
       with:
         soft_fail: true
+        working_directory: .
       continue-on-error: true
+
+    - name: Run tfsec with output
+      if: success() || failure()
+      run: |
+        # Install tfsec
+        curl -sSLo ./tfsec https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64
+        chmod +x ./tfsec
+        
+        # Run tfsec and generate SARIF
+        ./tfsec . --format sarif --out tfsec.sarif
+        
+        # Verify file exists
+        ls -la tfsec.sarif
 
     - name: Run checkov
       id: checkov
@@ -37,6 +51,18 @@ jobs:
         framework: terraform
         soft_fail: true
       continue-on-error: true
+
+    - name: Run checkov with output
+      if: success() || failure()
+      run: |
+        # Install checkov
+        pip install checkov
+        
+        # Run checkov and generate SARIF
+        checkov -d . --framework terraform --output sarif --output-file checkov.sarif
+        
+        # Verify file exists
+        ls -la checkov.sarif
 
     - name: Upload tfsec SARIF file
       uses: github/codeql-action/upload-sarif@v3
