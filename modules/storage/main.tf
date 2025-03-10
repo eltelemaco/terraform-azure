@@ -27,27 +27,8 @@ resource "azurerm_storage_account" "storage_account" {
   account_replication_type = "ZRS" # Geo-redundant storage
   account_kind             = "StorageV2"
   min_tls_version          = "TLS1_2"
-
-  # Enable Blob Service Features
-  blob_properties {
-    versioning_enabled       = true
-    change_feed_enabled      = true
-    last_access_time_enabled = true
-    delete_retention_policy {
-      days = var.soft_delete_retention_days
-    }
-    container_delete_retention_policy {
-      days = var.soft_delete_retention_days
-    }
-  }
-
-  # Network Rules
-  network_rules {
-    default_action = "Deny"
-    bypass         = ["AzureServices"]
-    ip_rules       = var.allowed_ip_ranges
-  }
-
+  
+  
   # Tags
   tags = merge(var.tags, {
     CostCenter      = var.cost_center
