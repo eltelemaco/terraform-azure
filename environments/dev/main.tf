@@ -73,7 +73,7 @@ module "network" {
 module "keyvault" {
   source = "../../modules/keyvault"
 
-  key_vault_name      = "${var.key_vault_name}-${random_string.keyvault_name.result}"
+  key_vault_name      = "${var.key_vault_name}-${random_string.rand_name.result}"
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   tenant_id           = var.tenant_id
@@ -81,7 +81,7 @@ module "keyvault" {
   tags                = var.tags
 }
 
-resource "random_string" "keyvault_name" {
+resource "random_string" "rand_name" {
   length  = 4
   special = false
   upper   = false
@@ -116,9 +116,9 @@ module "log_analytics" {
 }
 module "storage" {
   source = "../../modules/storage"
-
+  storage_account_name = "${var.storage_account_name}-${random_string.rand_name.result}" # "stgdevtfstatemgmt001"
   resource_group_name  = var.resource_group_name  #"rg-dev-storage"
-  storage_account_name = var.storage_account_name # "stgdevtfstatemgmt001"
+  
   location             = var.location             #  "southcentralus" # Texas
 
   # Tags
