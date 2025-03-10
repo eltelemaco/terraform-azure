@@ -24,7 +24,7 @@ resource "azurerm_storage_account" "storage_account" {
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Premium"
-  account_replication_type = "GRS" # Geo-redundant storage
+  account_replication_type = "ZRS" # Geo-redundant storage
   account_kind             = "StorageV2"
   min_tls_version          = "TLS1_2"
 
