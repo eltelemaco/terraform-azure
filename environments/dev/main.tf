@@ -32,7 +32,7 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "rg-terraform-backend"
-    storage_account_name = "tfstatereb80hkq"
+    storage_account_name = "tfstategp2ej81f"
     container_name       = "container-tfstate"
     key                  = "dev.terraform.tfstate"
     use_azuread_auth     = true
