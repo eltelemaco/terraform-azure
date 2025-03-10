@@ -28,9 +28,6 @@ resource "azurerm_storage_account" "storage_account" {
   account_kind             = "StorageV2"
   min_tls_version          = "TLS1_2"
 
-  # Enable Hierarchical Namespace for advanced features
-  is_hns_enabled = true
-
   # Enable Blob Service Features
   blob_properties {
     versioning_enabled       = true
