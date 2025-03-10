@@ -16,7 +16,7 @@ env:
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  ARM_USE_AZUREAD: true
+  # ARM_USE_AZUREAD: true
   TF_CLI_ARGS_plan: "-lock-timeout=5m"
   TF_CLI_ARGS_apply: "-lock-timeout=5m"
   TF_WORKSPACE: "dev"
@@ -24,6 +24,10 @@ env:
 jobs:
   terraform:
     name: 'Terraform'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     environment: dev
 
@@ -36,16 +40,29 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Azure OIDC Login
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
+    
+    # Run az commands to confirm sub access
+    - name: Azure CLI script
+      uses: azure/cli@v2
+      with:
+        azcliversion: latest
+        inlineScript: |
+          az account show
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
+      env:
+        ARM_USE_AZUREAD: true
+        ARM_USE_OIDC: true      
       with:
         terraform_version: "1.7.0"
+        terraform_wrapper: false
 
     - name: Terraform Format
       id: fmt
