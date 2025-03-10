@@ -2,9 +2,9 @@ name: 'Terraform Security Scan'
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
   schedule:
     - cron: '0 0 * * *'  # Run daily at midnight
 
