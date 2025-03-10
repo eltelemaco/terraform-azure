@@ -11,9 +11,12 @@ on:
           - dev
         default: 'dev'
       confirmation:
-        description: 'Type DESTROY-{environment} to confirm (e.g., DESTROY-dev)'
+        description: 'Select DESTROY-{environment} to confirm (e.g., DESTROY-dev)'
         required: true
-        type: string
+        type: choice
+        options:
+          - DESTROY-dev
+        default: 'DESTROY-dev'
 
 permissions:
   id-token: write
@@ -47,6 +50,7 @@ jobs:
         client-id: ${{ vars.AZURE_CLIENT_ID }}
         tenant-id: ${{ vars.AZURE_TENANT_ID }}
         subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        enable-AzPSSession: true
 
     # Cache PowerShell modules
     - name: Cache PowerShell modules
