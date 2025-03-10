@@ -117,9 +117,9 @@ module "log_analytics" {
 module "storage" {
   source = "../../modules/storage"
 
-  resource_group_name  = "rg-dev-storage"
-  storage_account_name = "stgdevtfstatemgmt001"
-  location             = "centralus" # Texas
+  resource_group_name  = var.resource_group_name #"rg-dev-storage"
+  storage_account_name = var.storage_account_name # "stgdevtfstatemgmt001"
+  location             = var.location #  "southcentralus" # Texas
 
   # Tags
   cost_center      = "IT-123"
