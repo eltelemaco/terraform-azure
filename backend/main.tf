@@ -6,6 +6,7 @@
  * - Resource Group for backend storage
  * - Storage Account with versioning enabled
  * - Storage Container for state files
+ * - Role assignments for access
  *
  * ## Security Features
  * - TLS 1.2 enforced
@@ -74,4 +75,19 @@ resource "random_string" "storage_account" {
   length  = 8
   special = false
   upper   = false
+}
+
+# Role Assignments for GitHub Actions
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+  scope                = azurerm_storage_account.terraform_state.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "storage_blob_data_owner" {
+  scope                = azurerm_storage_account.terraform_state.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = data.azurerm_client_config.current.object_id
 } 
