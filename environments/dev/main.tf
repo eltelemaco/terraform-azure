@@ -40,7 +40,11 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  features {
+    keyvault {
+      purge_soft_delete_on_destroy = false
+    }
+  }
 
   # OIDC Configuration
   use_oidc        = true
@@ -115,11 +119,11 @@ module "log_analytics" {
   ]
 }
 module "storage" {
-  source = "../../modules/storage"
-  storage_account_name = "${var.storage_account_name}-${random_string.rand_name.result}" # "stgdevtfstatemgmt001"
-  resource_group_name  = var.resource_group_name  #"rg-dev-storage"
-  
-  location             = var.location             #  "southcentralus" # Texas
+  source               = "../../modules/storage"
+  storage_account_name = "${var.storage_account_name}${random_string.rand_name.result}" # "stgdevtfstatemgmt001"
+  resource_group_name  = var.resource_group_name                                         #"rg-dev-storage"
+
+  location = var.location #  "southcentralus" # Texas
 
   # Tags
   cost_center      = "IT-123"
