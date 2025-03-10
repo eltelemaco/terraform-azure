@@ -13,6 +13,7 @@ permissions:
 
 env:
   TERRAFORM_VERSION: "1.7.0"
+  AZ_VERSION: "13.3.0"
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -62,9 +63,9 @@ jobs:
         path: |
           ~/.local/share/powershell/Modules
           ~/PowerShellModules
-        key: psmodules-${{ runner.os }}-${{ hashFiles('**/*.ps1') }}
+        key: psmodules-${{ runner.os }}-${{ env.AZ_VERSION }}-${{ hashFiles('**/*.ps1') }}
         restore-keys: |
-          psmodules-${{ runner.os }}-
+          psmodules-${{ runner.os }}-${{ env.AZ_VERSION }}-
 
     - name: Setup PowerShell modules
       if: steps.cache-psmodules.outputs.cache-hit != 'true'
