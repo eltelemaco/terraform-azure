@@ -16,6 +16,9 @@ env:
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_USE_AZUREAD: true
+  TF_CLI_ARGS_plan: "-lock-timeout=5m"
+  TF_CLI_ARGS_apply: "-lock-timeout=5m"
   TF_WORKSPACE: "dev"
 
 jobs:
@@ -51,7 +54,16 @@ jobs:
 
     - name: Terraform Init
       id: init
-      run: terraform init
+      run: |
+        for i in {1..3}; do
+          terraform init && break
+          if [ $i -eq 3 ]; then
+            echo "Failed to initialize after 3 attempts"
+            exit 1
+          fi
+          echo "Retrying initialization in 30 seconds..."
+          sleep 30
+        done
       working-directory: environments/${{ env.TF_WORKSPACE }}
 
     - name: Terraform Validate
@@ -62,7 +74,16 @@ jobs:
     - name: Terraform Plan
       id: plan
       if: github.event_name == 'pull_request'
-      run: terraform plan -no-color
+      run: |
+        for i in {1..3}; do
+          terraform plan -no-color && break
+          if [ $i -eq 3 ]; then
+            echo "Failed to plan after 3 attempts"
+            exit 1
+          fi
+          echo "Retrying plan in 30 seconds..."
+          sleep 30
+        done
       working-directory: environments/${{ env.TF_WORKSPACE }}
       continue-on-error: true
 
@@ -96,5 +117,14 @@ jobs:
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -auto-approve
+      run: |
+        for i in {1..3}; do
+          terraform apply -auto-approve && break
+          if [ $i -eq 3 ]; then
+            echo "Failed to apply after 3 attempts"
+            exit 1
+          fi
+          echo "Retrying apply in 30 seconds..."
+          sleep 30
+        done
       working-directory: environments/${{ env.TF_WORKSPACE }} 
