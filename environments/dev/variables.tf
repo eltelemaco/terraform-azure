@@ -1,3 +1,10 @@
+# Environment Configuration
+variable "environment" {
+  description = "The environment name (dev, prod, etc.)"
+  type        = string
+  default     = "dev"
+}
+
 # Azure Authentication - OIDC Authentication
 variable "subscription_id" {
   description = "The Azure Subscription ID"

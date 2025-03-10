@@ -6,6 +6,7 @@
  * - Resource Group
  * - Virtual Network with subnets
  * - Key Vault with access policies
+ * - Log Analytics Workspace for centralized logging
  *
  * ## Required Providers
  * - Azure RM Provider ~> 3.0
@@ -84,6 +85,33 @@ resource "random_string" "keyvault_name" {
   length  = 4
   special = false
   upper   = false
+}
+
+# Log Analytics Module - Centralized logging
+module "log_analytics" {
+  source = "../../modules/log_analytics"
+
+  workspace_name      = "log-${var.environment}-main"
+  resource_group_name = module.resource_group.resource_group_name
+  location           = module.resource_group.resource_group_location
+  subscription_id    = var.subscription_id
+  
+  # Resource IDs for diagnostic settings
+  key_vault_id       = module.keyvault.key_vault_id
+  vnet_id            = module.network.vnet_id
+  
+  # Optional configurations
+  retention_in_days  = 90
+  daily_quota_gb     = 5
+  
+  tags = merge(var.tags, {
+    Service = "Logging"
+  })
+
+  depends_on = [
+    module.keyvault,
+    module.network
+  ]
 }
 
 
