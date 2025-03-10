@@ -28,13 +28,19 @@ variable "allowed_ip_ranges" {
 variable "location" {
   description = "The Azure region where resources will be created"
   type        = string
-  default     = "eastus2"
+  default     = "southcentralus"
 }
 
 variable "resource_group_name" {
   description = "Name of the main resource group"
   type        = string
   default     = "rg-dev-main"
+}
+
+variable "storage_account_name" {
+  description = "Name of the storage account"
+  type        = string
+  default     = "stgdevtfstatemgmt001"
 }
 
 # Network Configuration

@@ -19,7 +19,7 @@
  */ 
 
 # Storage Account
-resource "azurerm_storage_account" "main" {
+resource "azurerm_storage_account" "storage_account" {
   name                     = var.storage_account_name
   resource_group_name      = var.resource_group_name
   location                 = var.location
@@ -64,14 +64,14 @@ resource "azurerm_storage_container" "levels" {
   for_each = toset(["level0", "level1", "level2", "level3"])
 
   name                  = each.key
-  storage_account_id    = azurerm_storage_account.main.id
+  storage_account_id    = azurerm_storage_account.storage_account.id
   container_access_type = "private"
 }
 
 # Diagnostic Settings for Log Analytics
 resource "azurerm_monitor_diagnostic_setting" "storage" {
   name                       = "storage-diagnostics"
-  target_resource_id         = azurerm_storage_account.main.id
+  target_resource_id         = azurerm_storage_account.storage_account.id
   log_analytics_workspace_id = var.log_analytics_workspace_id
 
   enabled_log {
@@ -94,6 +94,6 @@ resource "azurerm_monitor_diagnostic_setting" "storage" {
 
 # Enable Advanced Threat Protection
 resource "azurerm_advanced_threat_protection" "storage" {
-  target_resource_id = azurerm_storage_account.main.id
+  target_resource_id = azurerm_storage_account.storage_account.id
   enabled            = true
 } 
