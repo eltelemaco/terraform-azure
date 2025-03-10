@@ -1,3 +1,13 @@
+variable "subscription_id" {
+  description = "The Azure Subscription ID"
+  type        = string
+}
+
+variable "tenant_id" {
+  description = "The Azure AD Tenant ID"
+  type        = string
+}
+
 variable "location" {
   description = "The Azure region where resources will be created"
   type        = string

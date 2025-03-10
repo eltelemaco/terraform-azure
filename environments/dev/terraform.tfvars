@@ -20,9 +20,6 @@ tags = {
   ManagedBy   = "Terraform"
 }
 
-# Note: tenant_id should be provided via environment variable or secure method
-# tenant_id = "your-tenant-id"
-
 # Backend Configuration
 backend_resource_group_name  = "rg-terraform-backend"
 backend_storage_account_name = "tfstategp2ej81f"

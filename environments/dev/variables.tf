@@ -1,10 +1,16 @@
-# Azure AD Configuration
-variable "tenant_id" {
-  description = "Azure AD tenant ID"
+# Azure Authentication - OIDC Authentication
+variable "subscription_id" {
+  description = "The Azure Subscription ID"
   type        = string
 }
 
-# Key Vault Configuration
+# Azure AD Configuration - OIDC Authentication
+variable "tenant_id" {
+  description = "The Azure AD Tenant ID"
+  type        = string
+}
+
+# Key Vault Configuration - OIDC Authentication
 variable "allowed_ip_ranges" {
   description = "List of IP ranges allowed to access the Key Vault"
   type        = list(string)
