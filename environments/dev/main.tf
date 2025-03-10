@@ -114,7 +114,31 @@ module "log_analytics" {
     module.network
   ]
 }
+module "storage" {
+  source = "../../modules/storage"
 
+  resource_group_name  = "rg-dev-storage"
+  storage_account_name = "stgdevtfstatemgmt001"
+  location             = "centralus" # Texas
+
+  # Tags
+  cost_center      = "IT-123"
+  application_name = "Terraform State"
+  owner            = "DevOps Team"
+
+  # Optional configurations
+  soft_delete_retention_days = 30
+  log_retention_days         = 90
+  allowed_ip_ranges          = ["10.0.0.0/24"]
+
+  # Log Analytics
+  log_analytics_workspace_id = module.log_analytics.workspace_id
+
+  tags = {
+    Environment = "Development"
+    ManagedBy   = "Terraform"
+  }
+}
 
 
 

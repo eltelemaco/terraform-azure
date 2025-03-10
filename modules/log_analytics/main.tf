@@ -40,11 +40,11 @@ resource "azurerm_monitor_diagnostic_setting" "keyvault" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
 
   enabled_log {
-    category_group  = "allLogs"
+    category_group = "allLogs"
   }
 
   metric {
-    category = "AllMetrics"   
+    category = "AllMetrics"
   }
 }
 
@@ -61,6 +61,6 @@ resource "azurerm_monitor_diagnostic_setting" "vnet" {
   }
 
   metric {
-    category = "AllMetrics"    
+    category = "AllMetrics"
   }
 } 
