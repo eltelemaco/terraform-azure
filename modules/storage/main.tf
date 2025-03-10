@@ -24,18 +24,18 @@ resource "azurerm_storage_account" "main" {
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Premium"
-  account_replication_type = "GRS"  # Geo-redundant storage
-  account_kind            = "StorageV2"
-  min_tls_version         = "TLS1_2"
+  account_replication_type = "GRS" # Geo-redundant storage
+  account_kind             = "StorageV2"
+  min_tls_version          = "TLS1_2"
 
   # Enable Hierarchical Namespace for advanced features
   is_hns_enabled = true
 
   # Enable Blob Service Features
   blob_properties {
-    versioning_enabled           = true
-    change_feed_enabled         = true
-    last_access_time_enabled    = true
+    versioning_enabled       = true
+    change_feed_enabled      = true
+    last_access_time_enabled = true
     delete_retention_policy {
       days = var.soft_delete_retention_days
     }
@@ -64,7 +64,7 @@ resource "azurerm_storage_container" "levels" {
   for_each = toset(["level0", "level1", "level2", "level3"])
 
   name                  = each.key
-  storage_account_id    = azurerm_storage_account.main.id  
+  storage_account_id    = azurerm_storage_account.main.id
   container_access_type = "private"
 }
 
@@ -76,19 +76,19 @@ resource "azurerm_monitor_diagnostic_setting" "storage" {
 
   enabled_log {
     category_group = "allLogs"
-    
+
   }
 
   metric {
     category = "Transaction"
     enabled  = true
-    
+
   }
 
   metric {
     category = "Capacity"
     enabled  = true
-    
+
   }
 }
 
