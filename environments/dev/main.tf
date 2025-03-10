@@ -72,10 +72,18 @@ module "network" {
 module "keyvault" {
   source = "../../modules/keyvault"
 
-  key_vault_name      = var.key_vault_name
+  key_vault_name      = "${var.key_vault_name}-${random_string.keyvault_name.result}"
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   tenant_id           = var.tenant_id
   allowed_ip_ranges   = var.allowed_ip_ranges
   tags                = var.tags
-} 
+}
+
+resource "random_string" "keyvault_name" {
+  length  = 4
+  special = false
+  upper   = false
+}
+
+
