@@ -12,13 +12,10 @@ permissions:
   pull-requests: write
 
 env:
-  ARM_USE_OIDC: true
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  ARM_USE_AZUREAD: true
   ARM_USE_CLI: true
-  ARM_STORAGE_USE_AZUREAD: true
   TF_CLI_ARGS_plan: "-lock-timeout=5m"
   TF_CLI_ARGS_apply: "-lock-timeout=5m"
   TF_WORKSPACE: "dev"
@@ -52,13 +49,11 @@ jobs:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        enable-AzPSSession: true
     
     # Run az commands to confirm sub access
     - name: Azure CLI script
       uses: azure/cli@v2
       with:
-        azcliversion: latest
         inlineScript: |
           az account show
           # Verify backend storage access
@@ -66,22 +61,12 @@ jobs:
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
-      env:
-        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-        ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
-        ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
-        ARM_USE_AZUREAD: true
-        ARM_USE_OIDC: true      
       with:
-        terraform_version: "1.7.0"
-        terraform_wrapper: false
+        terraform_version: "1.7.1"
 
     - name: Terraform Format
       id: fmt
       run: terraform fmt -check -recursive
-      continue-on-error: true
 
     - name: Terraform Init
       id: init
@@ -91,8 +76,6 @@ jobs:
         ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
         ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
         ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
-        ARM_USE_AZUREAD: true
-        ARM_USE_OIDC: true      
       run: |
         echo "Cleaning up any existing Terraform files..."
         rm -rf .terraform
@@ -151,8 +134,7 @@ jobs:
           echo "Retrying plan in 30 seconds..."
           sleep 30
         done
-      working-directory: environments/${{ env.TF_WORKSPACE }}
-      continue-on-error: true
+      working-directory: environments/${{ env.TF_WORKSPACE }}      
 
     - name: Update Pull Request
       uses: actions/github-script@v7
