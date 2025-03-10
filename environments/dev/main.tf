@@ -26,7 +26,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "~> 3.7.0"
     }
   }
 
@@ -35,61 +35,55 @@ terraform {
     storage_account_name = "tfstategp2ej81f"
     container_name       = "container-tfstate"
     key                  = "dev.terraform.tfstate"
-    use_azuread_auth     = true
   }
 }
 
 provider "azurerm" {
   features {}
-  use_oidc = true
+
+  # OIDC Configuration
+  use_oidc        = true
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
 }
 
 # Resource Group Module
 module "resource_group" {
   source = "../../modules/resource_group"
 
-  resource_group_name = "rg-dev-main"
-  location            = "eastus2"
-  tags = {
-    Environment = "Development"
-    ManagedBy   = "Terraform"
-  }
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  tags                = var.tags
 }
 
 # Network Module - Creates Virtual Network and Subnets
 module "network" {
   source = "../../modules/network"
 
-  vnet_name           = "vnet-dev-main"
+  vnet_name           = var.vnet_name
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
-  address_space       = ["10.0.0.0/16"]
-
-  # Subnet configuration
-  subnets = {
-    "subnet-1" = "10.0.1.0/24" # Application subnet
-    "subnet-2" = "10.0.2.0/24" # Database subnet
-  }
-
-  tags = {
-    Environment = "Development"
-    ManagedBy   = "Terraform"
-  }
+  address_space       = var.vnet_address_space
+  subnets             = var.subnets
+  tags                = var.tags
 }
 
 # Key Vault Module - Secure secret management
 module "keyvault" {
   source = "../../modules/keyvault"
 
-  key_vault_name      = "kv-dev-main"
+  key_vault_name      = "${var.key_vault_name}-${random_string.keyvault_name.result}"
   resource_group_name = module.resource_group.resource_group_name
   location            = module.resource_group.resource_group_location
   tenant_id           = var.tenant_id
+  allowed_ip_ranges   = var.allowed_ip_ranges
+  tags                = var.tags
+}
 
-  allowed_ip_ranges = var.allowed_ip_ranges
+resource "random_string" "keyvault_name" {
+  length  = 4
+  special = false
+  upper   = false
+}
 
-  tags = {
-    Environment = "Development"
-    ManagedBy   = "Terraform"
-  }
-} 
+

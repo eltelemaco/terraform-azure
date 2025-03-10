@@ -20,28 +20,11 @@
  * - Container: tfstate
  */
 
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {}
-  use_oidc = true
-}
-
 # Backend Resource Group
 resource "azurerm_resource_group" "terraform_state" {
-  name     = "rg-terraform-backend"
-  location = "eastus2"
-  tags = {
-    Environment = "Management"
-    Purpose     = "Terraform State"
-  }
+  name     = var.resource_group_name
+  location = var.location
+  tags     = var.tags
 }
 
 # Storage Account for Terraform State
@@ -49,23 +32,20 @@ resource "azurerm_storage_account" "terraform_state" {
   name                     = "tfstate${random_string.storage_account.result}"
   resource_group_name      = azurerm_resource_group.terraform_state.name
   location                 = azurerm_resource_group.terraform_state.location
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
+  account_tier             = var.storage_account_tier
+  account_replication_type = var.storage_account_replication
   min_tls_version          = "TLS1_2"
 
   blob_properties {
     versioning_enabled = true # Enables state file versioning
   }
 
-  tags = {
-    Environment = "Management"
-    Purpose     = "Terraform State"
-  }
+  tags = var.tags
 }
 
 # Container for Terraform State Files
 resource "azurerm_storage_container" "terraform_state" {
-  name                  = "container-tfstate"
+  name                  = var.container_name
   storage_account_name  = azurerm_storage_account.terraform_state.name
   container_access_type = "private" # Ensures private access only
 }
@@ -78,16 +58,14 @@ resource "random_string" "storage_account" {
 }
 
 # Role Assignments for GitHub Actions
-data "azurerm_client_config" "current" {}
+# resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+#   scope                = azurerm_storage_account.terraform_state.id
+#   role_definition_name = "Storage Blob Data Contributor"
+#   principal_id         = "69604bd9-ce84-4969-9db0-288b8752ca9f"
+# }
 
-resource "azurerm_role_assignment" "storage_blob_data_contributor" {
-  scope                = azurerm_storage_account.terraform_state.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azurerm_client_config.current.object_id
-}
-
-resource "azurerm_role_assignment" "storage_blob_data_owner" {
-  scope                = azurerm_storage_account.terraform_state.id
-  role_definition_name = "Storage Blob Data Owner"
-  principal_id         = data.azurerm_client_config.current.object_id
-} 
+# resource "azurerm_role_assignment" "storage_blob_data_owner" {
+#   scope                = azurerm_storage_account.terraform_state.id
+#   role_definition_name = "Storage Blob Data Owner"
+#   principal_id         = "69604bd9-ce84-4969-9db0-288b8752ca9f"
+# } 
