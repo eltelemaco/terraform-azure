@@ -19,7 +19,7 @@ resource "azurerm_log_analytics_workspace" "main" {
   name                = var.workspace_name
   location            = var.location
   resource_group_name = var.resource_group_name
-  sku                = var.sku
+  sku                 = var.sku
   retention_in_days   = var.retention_in_days
   daily_quota_gb      = var.daily_quota_gb
 
@@ -73,10 +73,10 @@ resource "azurerm_monitor_diagnostic_setting" "subscription" {
 
 # Key Vault Diagnostic Settings
 resource "azurerm_monitor_diagnostic_setting" "keyvault" {
-  count = var.key_vault_id != null ? 1 : 0
+  count = var.key_vault_id != null && var.key_vault_id != "" ? 1 : 0
 
   name                       = "keyvault-diagnostics"
-  target_resource_id        = var.key_vault_id
+  target_resource_id         = var.key_vault_id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
 
   enabled_log {
@@ -100,10 +100,10 @@ resource "azurerm_monitor_diagnostic_setting" "keyvault" {
 
 # Virtual Network Diagnostic Settings
 resource "azurerm_monitor_diagnostic_setting" "vnet" {
-  count = var.vnet_id != null ? 1 : 0
+  count = var.vnet_id != null && var.vnet_id != "" ? 1 : 0
 
   name                       = "vnet-diagnostics"
-  target_resource_id        = var.vnet_id
+  target_resource_id         = var.vnet_id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.main.id
 
   enabled_log {

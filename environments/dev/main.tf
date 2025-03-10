@@ -93,21 +93,22 @@ module "log_analytics" {
 
   workspace_name      = "log-${var.environment}-main"
   resource_group_name = module.resource_group.resource_group_name
-  location           = module.resource_group.resource_group_location
-  subscription_id    = var.subscription_id
-  
+  location            = module.resource_group.resource_group_location
+  subscription_id     = var.subscription_id
+
   # Resource IDs for diagnostic settings
-  key_vault_id       = module.keyvault.key_vault_id
-  vnet_id            = module.network.vnet_id
-  
+  key_vault_id = module.keyvault.key_vault_id
+  vnet_id      = module.network.vnet_id
+
   # Optional configurations
-  retention_in_days  = 90
-  daily_quota_gb     = 5
-  
+  retention_in_days = 90
+  daily_quota_gb    = 5
+
   tags = merge(var.tags, {
     Service = "Logging"
   })
 
+  # Ensure resources are created before attempting to configure diagnostics
   depends_on = [
     module.keyvault,
     module.network
