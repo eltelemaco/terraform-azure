@@ -31,7 +31,7 @@ resource "azurerm_log_analytics_workspace" "main" {
 
 # Enable Azure Activity Log collection
 resource "azurerm_monitor_diagnostic_setting" "subscription" {
-  count = var.enable_activity_logs ? 1 : 0
+  # count = var.enable_activity_logs ? 1 : 0
 
   name               = "subscription-logs"
   target_resource_id = "/subscriptions/${var.subscription_id}"
@@ -45,7 +45,7 @@ resource "azurerm_monitor_diagnostic_setting" "subscription" {
 
 # Key Vault Diagnostic Settings
 resource "azurerm_monitor_diagnostic_setting" "keyvault" {
-  count = var.key_vault_id != null && var.key_vault_id != "" ? 1 : 0
+  # count = var.key_vault_id != null && var.key_vault_id != "" ? 1 : 0
 
   name                       = "keyvault-diagnostics"
   target_resource_id         = var.key_vault_id
@@ -58,7 +58,7 @@ resource "azurerm_monitor_diagnostic_setting" "keyvault" {
 
 # Virtual Network Diagnostic Settings
 resource "azurerm_monitor_diagnostic_setting" "vnet" {
-  count = var.vnet_id != null && var.vnet_id != "" ? 1 : 0
+  # count = var.vnet_id != null && var.vnet_id != "" ? 1 : 0
 
   name                       = "vnet-diagnostics"
   target_resource_id         = var.vnet_id
