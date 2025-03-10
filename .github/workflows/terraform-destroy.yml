@@ -11,9 +11,12 @@ on:
           - dev
         default: 'dev'
       confirmation:
-        description: 'Type DESTROY-{environment} to confirm (e.g., DESTROY-dev)'
+        description: 'Select DESTROY-{environment} to confirm (e.g., DESTROY-dev)'
         required: true
-        type: string
+        type: choice
+        options:
+          - DESTROY-dev
+        default: 'DESTROY-dev'
 
 permissions:
   id-token: write
@@ -22,12 +25,20 @@ permissions:
 
 env:
   TERRAFORM_VERSION: "1.7.0"
-  AZ_VERSION: "13.3.0"
+  ARM_USE_OIDC: true
+  TF_WORKSPACE: "dev"
+  # Terraform Variables from Secrets
+  TF_VAR_use_oidc: true
+  TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+  TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+  TF_VAR_storage_account_name: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+  TF_VAR_container_name: ${{ secrets.CONTAINER_NAME }}
 
 jobs:
   terraform-destroy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: dev
 
     steps:
     - name: Validate Confirmation
@@ -43,11 +54,11 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Azure Login
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
-        client-id: ${{ vars.AZURE_CLIENT_ID }}
-        tenant-id: ${{ vars.AZURE_TENANT_ID }}
-        subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
 
     # Cache PowerShell modules
@@ -58,24 +69,21 @@ jobs:
         path: |
           ~/.local/share/powershell/Modules
           ~/PowerShellModules
-        key: psmodules-${{ runner.os }}-${{ env.AZ_VERSION }}-${{ hashFiles('**/*.ps1') }}
+        key: psmodules-${{ runner.os }}-${{ hashFiles('**/*.ps1') }}
         restore-keys: |
-          psmodules-${{ runner.os }}-${{ env.AZ_VERSION }}-
+          psmodules-${{ runner.os }}-
 
     - name: Setup PowerShell modules
       if: steps.cache-psmodules.outputs.cache-hit != 'true'
       shell: pwsh
       run: |
-        Set-PSRepository PSGallery -InstallationPolicy Trusted
-        Install-Module -Name Az -RequiredVersion ${{ env.AZ_VERSION }} -Force -AllowClobber -Scope CurrentUser
-        # Verify installation
-        $AzVersion = Get-InstalledModule -Name Az
-        Write-Host "Installed Az PowerShell Module version: $($AzVersion.Version)"
+        Install-Module -Name Az.Storage -Force -AllowClobber -Scope CurrentUser
+        Install-Module -Name Az.Accounts -Force -AllowClobber -Scope CurrentUser
 
     - name: Check and Remove State Lock
       shell: pwsh
       run: |
-        $env = "${{ github.event.inputs.environment }}"
+        $env = "${{ env.TF_WORKSPACE }}"
         $storageAccount = Get-AzStorageAccount -ResourceGroupName "rg-terraform-backend" -Name "tfstategp2ej81f"
         $ctx = $storageAccount.Context
         $stateFile = "${env}.terraform.tfstate"
@@ -100,6 +108,13 @@ jobs:
       with:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
         terraform_wrapper: false
+      env:
+        ARM_USE_OIDC: true        
+        TF_VAR_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        TF_VAR_tenant_id: ${{ secrets.AZURE_TENANT_ID }}
+        TF_VAR_client_id: ${{ secrets.AZURE_CLIENT_ID }}
+        TF_VAR_storage_account_name: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+        TF_VAR_container_name: ${{ secrets.CONTAINER_NAME }}
 
     # Cache Terraform plugins and modules
     - name: Cache Terraform plugins and modules
@@ -119,11 +134,29 @@ jobs:
         echo 'plugin_cache_dir = "$HOME/.terraform.d/plugin-cache"' > ~/.terraformrc
 
     - name: Terraform Init
-      working-directory: environments/${{ github.event.inputs.environment }}
-      run: terraform init
+      working-directory: environments/${{ env.TF_WORKSPACE }}      
+      env:
+        ARM_USE_OIDC: true        
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+        ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+      run: |
+        echo "Cleaning up any existing Terraform files..."
+        rm -rf .terraform
+        rm -f .terraform.lock.hcl
+        terraform init
 
     - name: Terraform Plan Destroy
-      working-directory: environments/${{ github.event.inputs.environment }}
+      working-directory: environments/${{ env.TF_WORKSPACE }}
+      env:
+        ARM_USE_OIDC: true        
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+        ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
       run: terraform plan -destroy -out=tfdestroyplan
 
     - name: Pause for Review
@@ -134,5 +167,12 @@ jobs:
         sleep 30
 
     - name: Terraform Destroy
-      working-directory: environments/${{ github.event.inputs.environment }}
-      run: terraform apply -auto-approve tfdestroyplan
+      working-directory: environments/${{ env.TF_WORKSPACE }}
+      env:
+        ARM_USE_OIDC: true        
+        ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        ARM_STORAGE_ACCOUNT_NAME: ${{ secrets.STORAGE_ACCOUNT_NAME }}
+        ARM_CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+      run: terraform apply -auto-approve tfdestroyplan 
