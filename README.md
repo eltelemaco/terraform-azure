@@ -1,4 +1,4 @@
-# Azure Terraform Infrastructure
+# Azure Terraform Infrastructure 
 
 This repository contains Terraform configurations for Azure infrastructure deployment using GitHub Actions and OpenID Connect authentication.
 
