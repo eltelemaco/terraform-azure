@@ -12,6 +12,8 @@ permissions:
   pull-requests: write
 
 env:
+  TERRAFORM_VERSION: "1.7.0"
+  AZ_VERSION: "13.3.0"
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -52,6 +54,25 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
+
+    # Cache PowerShell modules
+    - name: Cache PowerShell modules
+      id: cache-psmodules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.local/share/powershell/Modules
+          ~/PowerShellModules
+        key: psmodules-${{ runner.os }}-${{ env.AZ_VERSION }}-${{ hashFiles('**/*.ps1') }}
+        restore-keys: |
+          psmodules-${{ runner.os }}-${{ env.AZ_VERSION }}-
+
+    - name: Setup PowerShell modules
+      if: steps.cache-psmodules.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: |
+        Install-Module -Name Az.Storage -Force -AllowClobber -Scope CurrentUser
+        Install-Module -Name Az.Accounts -Force -AllowClobber -Scope CurrentUser
     
     # Run az commands to confirm sub access
     - name: Azure CLI script
@@ -65,9 +86,27 @@ jobs:
           az storage container exists --name container-tfstate --account-name $(az storage account list -g rg-terraform-backend --query "[0].name" -o tsv) --auth-mode login
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      uses: hashicorp/setup-terraform@v3      
       with:
-        terraform_version: "1.7.1"
+        terraform_version: ${{ env.TERRAFORM_VERSION }}        
+        terraform_wrapper: false
+    
+    # Cache Terraform plugins and modules
+    - name: Cache Terraform plugins and modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.terraform.d/plugin-cache
+          **/.terraform
+        key: terraform-${{ runner.os }}-${{ env.TERRAFORM_VERSION }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+        restore-keys: |
+          terraform-${{ runner.os }}-${{ env.TERRAFORM_VERSION }}-
+
+    # Configure Terraform plugin cache directory
+    - name: Configure Terraform plugin cache
+      run: |
+        mkdir -p ~/.terraform.d/plugin-cache
+        echo 'plugin_cache_dir = "$HOME/.terraform.d/plugin-cache"' > ~/.terraformrc
 
     - name: Terraform Format
       id: fmt

@@ -1,3 +1,10 @@
+# Environment Configuration
+variable "environment" {
+  description = "The environment name (dev, prod, etc.)"
+  type        = string
+  default     = "dev"
+}
+
 # Azure Authentication - OIDC Authentication
 variable "subscription_id" {
   description = "The Azure Subscription ID"
@@ -21,13 +28,19 @@ variable "allowed_ip_ranges" {
 variable "location" {
   description = "The Azure region where resources will be created"
   type        = string
-  default     = "eastus2"
+  default     = "southcentralus"
 }
 
 variable "resource_group_name" {
   description = "Name of the main resource group"
   type        = string
   default     = "rg-dev-main"
+}
+
+variable "storage_account_name" {
+  description = "Name of the storage account"
+  type        = string
+  default     = "stgdevdemomgmt01" #stg<env><name><number>
 }
 
 # Network Configuration
